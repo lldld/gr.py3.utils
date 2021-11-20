@@ -24,7 +24,9 @@ class Configuration:
                     props[key] = value.replace("${APP_ROOT_FOLDER}", app_root_folder)
         return props
 
-    def save(self, props={}):
+    def save(self, props=None):
+        if props is None:
+            props = {}
         with open(self.file, 'w+') as out:
             for key in props.keys():
                 value = props[key]
