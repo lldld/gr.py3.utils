@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from datetime import datetime, date
-from typing import Dict
+from typing import Dict, List, Optional, Tuple
 
 from .error import Error
 
@@ -71,3 +71,42 @@ def field_of(d: Dict[any, any], key: any):
 
 def float_02(f: float):
     return round(f * 100) / 100
+
+
+def sort_and_merge_ints(ints: List[int]):
+    results: List[Tuple[int, int]] = []
+    if len(ints) == 0:
+        return results
+
+    sorted_ints = sorted(ints)
+
+    start: Optional[int] = None
+    curr: Optional[int] = None
+    for i in sorted_ints:
+        if start is None:
+            start = i
+            curr = i
+            continue
+
+        if i == curr + 1:
+            curr = i
+            continue
+
+        results.append((start, curr))
+        start = i
+        curr = i
+
+    if start is not None:
+        results.append((start, curr))
+
+    return results
+
+
+def get_simple_desc_of_int_groups(groups: List[Tuple[int, int]],
+                                  formatter: str = "{}",
+                                  linker: str = "-",
+                                  joiner: str = ","
+                                  ):
+    items = list(map(lambda group: (formatter + linker + formatter).format(group[0], group[1]) if group[0] != group[
+        1] else formatter.format(group[0]), groups))
+    return joiner.join(items)

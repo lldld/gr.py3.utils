@@ -7,7 +7,8 @@
 rm -rf ./build && \
 rm -rf ./dist && \
 rm -rf ./grutils.egg-info && \
-python3 setup.py sdist bdist_wheel
+python3 setup.py sdist bdist_wheel && \
+cp -r dist /Users/liuleidong/Downloads/SharedFromMac/grutils/
 ```
 
 # 发布到pypi.org
