@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
+import shutil
 from typing import List
 
 from xlwings.utils import rgb_to_int
@@ -169,3 +171,98 @@ def sky_blue():
 
 def green():
     return rgb_to_int((0, 255, 0))
+
+
+def is_excel_file_opened(file_path: str):
+    (file_folder, file_name) = os.path.split(file_path)
+
+    locked_file = file_folder + '\\~$' + file_name
+    return os.path.exists(locked_file)
+
+
+def upload_data_to_another_file(err: Error,
+                                app: xw.App,
+                                source_file_path: str,
+                                target_file_path: str,
+                                source_sheet: str = 'Sheet1',
+                                target_sheet: str = 'Sheet1',
+                                empty_rows: int = 1,
+                                source_ref_column: str = 'A',
+                                target_ref_column: str = 'A'
+                                ):
+    if err.has_error():
+        return
+
+    # check target folder is exists
+    target_folder = os.path.dirname(target_file_path)
+    if not os.path.exists(target_folder):
+        err.append('try to upload data to shared file {}, but its folder {} is not exists'
+                   .format(target_file_path, target_folder))
+        return
+
+    # check file opening
+    opened = is_excel_file_opened(target_file_path)
+    if opened:
+        err.append('try to upload data to shared file {}, but it is opened now'.format(target_file_path))
+        return
+
+    # copy file if target is not exists
+    if not os.path.exists(target_file_path):
+        try:
+            shutil.copy(source_file_path, target_file_path)
+            target_wb: xw.Book = app.books.open(target_file_path)
+
+            # rename sheet if should
+            if source_sheet != target_sheet:
+                target_sht = sheet_with_name(err, target_wb, source_sheet)
+                if err.has_error():
+                    close_wb(target_wb)
+                    return
+                target_sht.name = target_sheet
+                target_wb.save()
+
+            # remove useless sheets
+            has_useless_sheets = False
+            for sht in target_wb.sheets:
+                if sht.name != target_sheet:
+                    has_useless_sheets = True
+                    sht.delete()
+            if has_useless_sheets:
+                target_wb.save()
+
+            close_wb(target_wb)
+
+        except Exception as e:
+            err.append(
+                'copy file {} to file {} failed with error {}'.format(source_file_path, target_file_path, e))
+        return
+
+    # uploading
+    source_wb = app.books.open(source_file_path)
+    source_sht = sheet_with_name(err, source_wb, source_sheet)
+    if err.has_error():
+        return
+
+    source_row_count = len(column_items(err, source_sht, source_ref_column))
+    if err.has_error():
+        return
+
+    if source_row_count == 0:
+        err.append('no data in source file {}'.format(source_file_path))
+
+    target_wb = app.books.open(target_file_path)
+    target_sht = sheet_with_name(err, target_wb, target_sheet)
+    if err.has_error():
+        return
+    target_row_count = len(column_items(err, target_sht, target_ref_column))
+    if err.has_error():
+        return
+
+    source_range = source_sht.range('A1:ZZ{}'.format(source_row_count))
+    target_range = target_sht.range('A{}:ZZ{}'.format(target_row_count + 1 + empty_rows,
+                                                      target_row_count + source_row_count + empty_rows))
+    source_range.copy(target_range)
+    target_wb.save()
+
+    close_wb(source_wb)
+    close_wb(target_wb)

@@ -81,6 +81,19 @@ class Form:
             self.err.append('can not find title "{}"'.format(title))
         return column_index
 
+    def title_to_column_index_mapping(self, titles: List[str]):
+        if self.err.has_error():
+            return
+
+        mapping = {}
+        for title in titles:
+            index = self.column_index_with_title(title)
+            if self.err.has_error():
+                return
+            mapping[title] = index
+
+        return mapping
+
     def set_title_row(self, row_num=1, titles: List[any] = None, do_strip=True):
         if titles is None:
             titles = []
@@ -140,29 +153,26 @@ class Form:
 
         return cell
 
-    def row_with_value(self, title, value_of_title):
-        column_index = self.title_row.index(title)
+    def find_row_by_column(self, column_title: str, column_value: any):
+        column_index = self.title_row.index(column_title)
         if column_index < 0:
-            self.err.append('title({}) was not found'.format(title))
+            self.err.append('column with title({}) is not found'.format(column_title))
             return None
 
-        r = first_match(lambda x: x.cells[column_index] == value_of_title, self.data_rows).data
-        if r is None:
-            self.err.append('title({}) and value({}) is not found'.format(title, value_of_title))
+        r = first_match(lambda x: x.cells[column_index] == column_value, self.data_rows)
+        if r.data is None:
+            self.err.append('cannot find row with column value({}) in column (title: {})'
+                            .format(column_value, column_title))
 
         return r
 
-    def row_index_with_value(self, title, value_of_title):
-        column_index = self.title_row.index(title)
-        if column_index < 0:
-            self.err.append('title({}) was not found'.format(title))
-            return None
+    def row_with_value(self, column_title: str, column_value: any):
+        r = self.find_row_by_column(column_title, column_value)
+        return None if self.err.has_error() else r.data
 
-        r = first_match(lambda x: x.cells[column_index] == value_of_title, self.data_rows).index
-        if r < 0:
-            self.err.append('title({}) and value({}) is not found'.format(title, value_of_title))
-
-        return r
+    def row_index_with_value(self, column_title: str, column_value: any):
+        r = self.find_row_by_column(column_title, column_value)
+        return -1 if self.err.has_error() else r.index
 
     def cells_lookup(self, title, value_of_title, other_titles: List[any] = None):
         if other_titles is None:
