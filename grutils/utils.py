@@ -54,13 +54,38 @@ def is_none_or_empty(s: str):
 
 def date_of(a: any):
     t = type(a)
-    if t == str:
-        return date.fromisoformat(a)  # format: "2021-01-03"
-    elif t == datetime:
-        return a.date()
-    elif t == date:
-        return a
-    else:
+    try:
+        if t == str:
+            if a.find('/') >= 0:
+                items: List[str] = a.split('/')
+                items_count = len(items)
+                if items_count == 2:
+                    month = int(items[0])
+                    day = int(items[1])
+                    today = datetime.date(datetime.now())
+                    month_diff = today.month - month
+                    year = today.year if (0 <= month_diff <= 8) else (today.year + 1)
+                    return date.fromisoformat('{:04d}-{:02d}-{:02d}'.format(year, month, day))
+                elif items_count == 3:
+                    month = int(items[0])
+                    day = int(items[1])
+                    year = int(items[2])
+                    return date.fromisoformat('{:04d}-{:02d}-{:02d}'.format(year, month, day))
+            elif a.find('-') >= 0:
+                items: List[str] = a.split('-')
+                if len(items) == 3:
+                    year = int(items[0])
+                    month = int(items[1])
+                    day = int(items[2])
+                    return date.fromisoformat('{:04d}-{:02d}-{:02d}'.format(year, month, day))
+            raise Exception('failed')
+        elif t == datetime:
+            return a.date()
+        elif t == date:
+            return a
+        else:
+            raise Exception('failed')
+    except Exception as e:
         s = 'cannot parse date from ({})'.format(a)
         raise Exception(s)
 

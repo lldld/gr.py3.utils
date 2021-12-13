@@ -33,7 +33,7 @@ class Row:
             err.append('can not find cell ({})'.format(cell))
         return i
 
-    def cell(self, column_index, err: Error):
+    def cell(self, column_index: int, err: Error):
         if not self.is_inited():
             err.append('row is not inited')
             return None
