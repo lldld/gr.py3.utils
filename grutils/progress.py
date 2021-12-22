@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from pprint import pprint
+from typing import List, Optional, Dict
 
 
 class Progress:
@@ -7,6 +9,11 @@ class Progress:
         self.curr = 0
         self.max = 10000
         self.progress_bar = None
+        self.__root_step_data: Dict = {
+            'steps': {},
+            'percent': 1.0,
+            'is_finished': False
+        }
 
     def set_process_bar(self, process_bar):
         self.progress_bar = process_bar
@@ -19,7 +26,7 @@ class Progress:
             val = 0
 
         self.curr = val
-        print("percent:", self.curr_percent())
+        print("[progress] percent:", self.curr_percent())
         if self.progress_bar is not None:
             self.progress_bar["value"] = min(self.curr, self.max)
             self.progress_bar.update()
@@ -35,6 +42,7 @@ class Progress:
         self.set_percent(percent)
 
     def reset(self):
+        self.__set_step_status(False)
         self.set(0)
 
     def finish(self):
@@ -45,6 +53,82 @@ class Progress:
 
     def remaining_percent(self):
         return 1.0 - self.curr_percent()
+
+    def __find_step(self, chain: Optional[List[str]] = None):
+        step_chain = [self.__root_step_data]
+
+        if chain is None:
+            return step_chain
+
+        for step_name in chain:
+            father_step = step_chain[-1]
+            if 'steps' not in father_step or step_name not in father_step['steps']:
+                print('[progress] warning: step {} in chain {} not found'.format(step_name, chain))
+                return None
+
+            step_chain.append(father_step['steps'][step_name])
+
+        return step_chain
+
+    def register_step(self, step: str, percent: float, chain: Optional[List[str]] = None):
+        step_chain = self.__find_step(chain)
+        if step_chain is None:
+            return
+
+        # goto steps of father step
+        father_step = step_chain[-1]
+        if 'steps' not in father_step:
+            father_step['steps'] = {}
+        father_steps = father_step['steps']
+
+        # total percent of father step should not bigger than 1.0
+        total_percent = 0.0
+        for brother_step in father_steps:
+            total_percent += father_steps[brother_step]['percent']
+        percent = min(1.0 - total_percent, percent)
+
+        father_steps[step] = {
+            'percent': percent,
+            'is_finished': False
+        }
+
+    def __set_step_status(self, is_finished: bool, chain: Optional[List[str]] = None):
+        def reset_step(d: Dict):
+            d['is_finished'] = is_finished
+            if 'steps' in d:
+                for step in d['steps']:
+                    reset_step(d['steps'][step])
+
+        step_chain = self.__find_step(chain)
+        if step_chain is not None:
+            reset_step(step_chain[-1])
+        if is_finished:
+            _chain = [""] if chain is None else [""] + chain
+            print('[progress] step: {} finished'.format("=>".join(_chain)))
+
+    def __cal_percent_from_step_data(self):
+        def percent_of(d: Dict, d_father_total_percent: float):
+            d_total_percent = d_father_total_percent * d['percent']
+            if d['is_finished']:
+                return d_total_percent
+
+            if 'steps' not in d:
+                return 0.0
+
+            d_subs_curr_percent = 0.0
+            for step in d['steps']:
+                d_subs_curr_percent += percent_of(d['steps'][step], d_total_percent)
+            return d_subs_curr_percent
+
+        return percent_of(self.__root_step_data, 1.0)
+
+    def finish_step(self, chain: Optional[List[str]] = None):
+        self.__set_step_status(True, chain)
+
+        self.set_percent(self.__cal_percent_from_step_data())
+
+    def dump_steps(self):
+        pprint(self.__root_step_data)
 
 
 shared_progress = Progress()
