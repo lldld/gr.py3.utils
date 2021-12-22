@@ -15,38 +15,50 @@ from grutils.progress import shared_progress
 
 shared_progress.reset()
 
-shared_progress.register_step("step 1", 0.3)
-shared_progress.register_step("step 2", 0.4)
+shared_progress.register_step("step 1", 6)
+shared_progress.register_step("step 2", 4)
 shared_progress.register_step("step 2.1", 0.6, ["step 2"])
 shared_progress.register_step("step 2.2", 0.4, ["step 2"])
-shared_progress.register_step("step 2.2.1", 0.2, ["step 2", "step 2.2"])
-shared_progress.register_step("step 2.2.2", 0.2, ["step 2", "step 2.2"])
-shared_progress.register_step("step 2.2.3", 0.2, ["step 2", "step 2.2"])
-shared_progress.register_step("step 2.2.4", 0.2, ["step 2", "step 2.2"])
-shared_progress.register_step("step 2.2.5", 0.2, ["step 2", "step 2.2"])
-shared_progress.register_step("step 3", 0.5)
+shared_progress.register_step("step 2.2.1", 1, ["step 2", "step 2.2"])
+shared_progress.register_step("step 2.2.2", 1, ["step 2", "step 2.2"])
+shared_progress.register_step("step 2.2.3", 1, ["step 2", "step 2.2"])
+shared_progress.register_step("step 2.2.4", 1, ["step 2", "step 2.2"])
+shared_progress.register_step("step 2.3", 1, ["step 2"])
+shared_progress.register_step("step 3", 10)
 
+shared_progress.re_assign_steps()
+
+shared_progress.finish_step(["step 3"])
 shared_progress.dump_steps()
 
-print('\n\n  ============== ')
-shared_progress.finish_step(["step 1"])
+shared_progress.reset()
+shared_progress.finish_step(["step 2"])
+shared_progress.dump_steps()
 
-print('\n\n  ============== ')
-shared_progress.finish_step(["step 2", "step 2.1"])
 
-print('\n\n  ============== ')
-shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.1"])
-shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.2"])
-shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.3"])
-shared_progress.finish_step(["step 2", "step 2.2"])
-
-print('\n\n  ============== ')
-shared_progress.finish_step(["step 3"])
-
-print('\n\n  ============== ')
+shared_progress.reset(True)
 shared_progress.finish()
 shared_progress.dump_steps()
 
-print('\n\n  ============== ')
-shared_progress.reset()
-shared_progress.dump_steps()
+# print('\n\n  ============== ')
+# shared_progress.finish_step(["step 1"])
+#
+# print('\n\n  ============== ')
+# shared_progress.finish_step(["step 2", "step 2.1"])
+#
+# print('\n\n  ============== ')
+# shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.1"])
+# shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.2"])
+# shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.3"])
+# shared_progress.finish_step(["step 2", "step 2.2"])
+#
+# print('\n\n  ============== ')
+# shared_progress.finish_step(["step 3"])
+#
+# print('\n\n  ============== ')
+# shared_progress.finish()
+# shared_progress.dump_steps()
+#
+# print('\n\n  ============== ')
+# shared_progress.reset()
+# shared_progress.dump_steps()

@@ -10,7 +10,6 @@ class Progress:
         self.max = 10000
         self.progress_bar = None
         self.__root_step_data: Dict = {
-            'steps': {},
             'percent': 1.0,
             'is_finished': False
         }
@@ -41,8 +40,14 @@ class Progress:
         percent = self.curr_percent() + delta_percent
         self.set_percent(percent)
 
-    def reset(self):
-        self.__set_step_status(False)
+    def reset(self, unregister_all_steps: bool = False):
+        if unregister_all_steps:
+            self.__root_step_data = {
+                'percent': 1.0,
+                'is_finished': False
+            }
+        else:
+            self.__set_step_status(False)
         self.set(0)
 
     def finish(self):
@@ -55,7 +60,7 @@ class Progress:
         return 1.0 - self.curr_percent()
 
     def __find_step(self, chain: Optional[List[str]] = None):
-        step_chain = [self.__root_step_data]
+        step_chain: List[Dict] = [self.__root_step_data]
 
         if chain is None:
             return step_chain
@@ -70,27 +75,39 @@ class Progress:
 
         return step_chain
 
-    def register_step(self, step: str, percent: float, chain: Optional[List[str]] = None):
+    def register_step(self, step: str, weight: float, chain: Optional[List[str]] = None):
         step_chain = self.__find_step(chain)
         if step_chain is None:
             return
 
-        # goto steps of father step
         father_step = step_chain[-1]
         if 'steps' not in father_step:
             father_step['steps'] = {}
         father_steps = father_step['steps']
 
-        # total percent of father step should not bigger than 1.0
-        total_percent = 0.0
-        for brother_step in father_steps:
-            total_percent += father_steps[brother_step]['percent']
-        percent = round(min(1.0 - total_percent, percent) * 100000)/100000
-
         father_steps[step] = {
-            'percent': percent,
+            'percent': weight,
             'is_finished': False
         }
+
+    def re_assign_steps(self):
+        def re_assign_sub_steps(d: Dict):
+            if 'steps' not in d:
+                return
+
+            d_subs_total_percent = 0.0
+            for step in d['steps']:
+                d_subs_total_percent += d['steps'][step]['percent']
+
+            if d_subs_total_percent == 0.0:
+                return
+
+            for step in d['steps']:
+                d_sub = d['steps'][step]
+                re_assign_sub_steps(d_sub)
+                d_sub['percent'] = round((d_sub['percent'] / d_subs_total_percent) * 100000) / 100000
+
+        re_assign_sub_steps(self.__root_step_data)
 
     def __set_step_status(self, is_finished: bool, chain: Optional[List[str]] = None):
         def reset_step(d: Dict):
@@ -103,7 +120,7 @@ class Progress:
         if step_chain is not None:
             reset_step(step_chain[-1])
         if is_finished:
-            _chain = [""] if chain is None else [""] + chain
+            _chain = ["@"] if chain is None else ["@"] + chain
             print('[progress] step: {} finished'.format("=>".join(_chain)))
 
     def __cal_percent_from_step_data(self):
