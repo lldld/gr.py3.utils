@@ -85,7 +85,7 @@ def date_of(a: any):
             return a
         else:
             raise Exception('failed')
-    except Exception as e:
+    except Exception as _:
         s = 'cannot parse date from ({})'.format(a)
         raise Exception(s)
 

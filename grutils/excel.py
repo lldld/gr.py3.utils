@@ -180,6 +180,45 @@ def is_excel_file_opened(file_path: str):
     return os.path.exists(locked_file)
 
 
+def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
+                          source_sheet: str = 'Sheet1',
+                          target_sheet: str = 'Sheet1',
+                          skip_if_no_source_sheet: bool = False,
+                          empty_rows: int = 1,
+                          source_ref_column: str = 'A',
+                          target_ref_column: str = 'A'):
+    if err.has_error():
+        return
+    source_sht = sheet_with_name(err, source_wb, source_sheet)
+    if err.has_error():
+        if skip_if_no_source_sheet:
+            print('[Info] skip to copy sheet "{}", because it is not exists'.format(source_sheet))
+            err.clear()
+            return
+        return
+
+    source_row_count = len(column_items(err, source_sht, source_ref_column))
+    if err.has_error():
+        return
+
+    if source_row_count == 0:
+        return
+
+    target_sht = sheet_with_name(err, target_wb, target_sheet)
+    if err.has_error():
+        return
+    target_row_count = len(column_items(err, target_sht, target_ref_column))
+    if err.has_error():
+        return
+
+    source_range = source_sht.range('A1:ZZ{}'.format(source_row_count))
+    split_row_count = 0 if target_row_count == 0 else empty_rows
+    target_range = target_sht.range('A{}:ZZ{}'.format(target_row_count + 1 + split_row_count,
+                                                      target_row_count + source_row_count + split_row_count))
+    source_range.copy(target_range)
+    return True
+
+
 def upload_data_to_another_file(err: Error,
                                 app: xw.App,
                                 source_file_path: str,
@@ -239,30 +278,17 @@ def upload_data_to_another_file(err: Error,
 
     # uploading
     source_wb = app.books.open(source_file_path)
-    source_sht = sheet_with_name(err, source_wb, source_sheet)
-    if err.has_error():
-        return
-
-    source_row_count = len(column_items(err, source_sht, source_ref_column))
-    if err.has_error():
-        return
-
-    if source_row_count == 0:
-        err.append('no data in source file {}'.format(source_file_path))
-
     target_wb = app.books.open(target_file_path)
-    target_sht = sheet_with_name(err, target_wb, target_sheet)
-    if err.has_error():
-        return
-    target_row_count = len(column_items(err, target_sht, target_ref_column))
-    if err.has_error():
-        return
 
-    source_range = source_sht.range('A1:ZZ{}'.format(source_row_count))
-    target_range = target_sht.range('A{}:ZZ{}'.format(target_row_count + 1 + empty_rows,
-                                                      target_row_count + source_row_count + empty_rows))
-    source_range.copy(target_range)
-    target_wb.save()
+    uploaded = append_sht_to_another(err, source_wb, target_wb,
+                                     source_sheet,
+                                     target_sheet,
+                                     empty_rows,
+                                     source_ref_column,
+                                     target_ref_column)
+
+    if uploaded is not None and uploaded:
+        target_wb.save()
 
     close_wb(source_wb)
     close_wb(target_wb)
