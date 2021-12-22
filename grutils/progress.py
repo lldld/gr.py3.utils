@@ -46,7 +46,7 @@ class Progress:
         self.set(0)
 
     def finish(self):
-        self.set(self.max)
+        self.finish_step()
 
     def remaining(self):
         return self.max - self.curr
@@ -85,7 +85,7 @@ class Progress:
         total_percent = 0.0
         for brother_step in father_steps:
             total_percent += father_steps[brother_step]['percent']
-        percent = min(1.0 - total_percent, percent)
+        percent = round(min(1.0 - total_percent, percent) * 100000)/100000
 
         father_steps[step] = {
             'percent': percent,

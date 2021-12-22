@@ -44,7 +44,7 @@ print('\n\n  ============== ')
 shared_progress.finish_step(["step 3"])
 
 print('\n\n  ============== ')
-shared_progress.finish_step()
+shared_progress.finish()
 shared_progress.dump_steps()
 
 print('\n\n  ============== ')
