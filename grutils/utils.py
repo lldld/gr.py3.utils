@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 from datetime import datetime, date
 from typing import Dict, List, Optional, Tuple
 
+from .configs import Configuration
 from .error import Error
 
 
@@ -135,3 +137,85 @@ def get_simple_desc_of_int_groups(groups: List[Tuple[int, int]],
     items = list(map(lambda group: (formatter + linker + formatter).format(group[0], group[1]) if group[0] != group[
         1] else formatter.format(group[0]), groups))
     return joiner.join(items)
+
+
+def str_without_prefix(val: any, prefix='\''):
+    if type(val) == str and val.startswith(prefix):
+        return val[len(prefix):]
+    else:
+        return val
+
+
+def str_without_prefixes(val: any, prefixes: List[str]):
+    if type(val) != str:
+        return val
+    _val = val
+    for prefix in prefixes:
+        if _val.startswith(prefix):
+            _val = _val[len(prefix):]
+    return _val
+
+
+def str_with_prefix(val: any, formatter: str = '{}', prefix='\''):
+    if type(val) == str and val.startswith(prefix):
+        return val
+    else:
+        return (prefix + formatter).format(val)
+
+
+def simple_date_str(d: date):
+    return '{}/{}'.format(d.month, d.day)
+
+
+def compare_two_list(a: Optional[List], b: Optional[List]):
+    if a is None and b is None:
+        return True
+
+    if a is None or b is None:
+        return False
+
+    for k in a:
+        if k not in b:
+            return False
+
+    for k in b:
+        if k not in a:
+            return False
+
+    return True
+
+
+def get_os_user():
+    return os.getenv('username')
+
+
+def get_special_folder(err: Error, key: str, config: Configuration, test_os_user: str = 'liuleidong'):
+    if err.has_error():
+        return
+
+    folder = config.get(key=key, default='', save_if_no=False)
+    if os.path.exists(folder):
+        return folder
+
+    os_user = get_os_user()
+    if os_user == test_os_user:
+        folder = config.get(key='test_' + key, default='', save_if_no=False)
+        if len(folder) == 0:
+            return folder
+        if os.path.exists(folder):
+            return folder
+
+    err.append('folder "' + folder + '" is not exists')
+
+
+# noinspection PyBroadException
+def int_val_or_none(s: str):
+    try:
+        i = int(round(float(s)))
+        return i
+    except Exception as _:
+        return None
+
+
+def string_of(v: any):
+    return v if type(v) == str else '{}'.format(v)

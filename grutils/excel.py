@@ -283,6 +283,7 @@ def upload_data_to_another_file(err: Error,
     uploaded = append_sht_to_another(err, source_wb, target_wb,
                                      source_sheet,
                                      target_sheet,
+                                     False,
                                      empty_rows,
                                      source_ref_column,
                                      target_ref_column)

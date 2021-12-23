@@ -12,6 +12,7 @@
 # print(date_of(datetime.date(datetime.now())))
 
 from grutils.progress import shared_progress
+from grutils.form_utils import read_sht
 
 shared_progress.reset()
 
@@ -32,13 +33,9 @@ shared_progress.finish_step(["step 3"])
 shared_progress.dump_steps()
 
 shared_progress.reset()
-shared_progress.finish_step(["step 2"])
+shared_progress.finish_step(["step 2", "step 2.2", "step 2.2.1"])
 shared_progress.dump_steps()
 
-
-shared_progress.reset(True)
-shared_progress.finish()
-shared_progress.dump_steps()
 
 # print('\n\n  ============== ')
 # shared_progress.finish_step(["step 1"])
