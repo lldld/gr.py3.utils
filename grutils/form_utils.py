@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import List
 from .excel import row_items, num_to_column, column_to_num, column_items
-from .utils import is_none_or_empty
+from .formatter_and_parser import is_none_or_empty
 from .error import Error
 import xlwings as xw
 from .form import Form

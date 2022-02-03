@@ -3,16 +3,16 @@
 from typing import List, Optional, Dict
 from .csv import load_form_from_csv_file
 from .excel import num_to_column, column_to_num
-from .utils import is_none_or_empty, string_of
+from .formatter_and_parser import is_none_or_empty, string_of, parse_value
 from .error import Error
 
 from .form import Form
+from .utils import get_value_or_exception
 
 
 class EasyForm:
     def __init__(self, err: Error, form: Form, must_has_content: bool = True):
         self.err = err
-
         self.__raw_form = form
         self.__all_fields: List[str] = list(map(lambda x: string_of(x), self.__raw_form.title_row.cells))
         self.___row_num_to_index_dict: Optional[Dict[int, int]] = self.__init_row_num_to_index_dict()
@@ -135,7 +135,8 @@ class EasyForm:
             val = row.cell(field_index, self.err)
             row.cells[field_index] = formatter(val)
 
-    def find_row_num_list(self, field: str, val):
+    def find_row_num_list(self, field: str, val, data_type: str = "自动", must_have: bool = False,
+                          must_only_one: bool = False):
         self.__verify_field(field)
         if self.err.has_error():
             return
@@ -145,27 +146,34 @@ class EasyForm:
         for row_num in self.___row_num_to_index_dict:
             row_index = self.___row_num_to_index_dict[row_num]
             row_cell_val = self.__raw_form.data_rows[row_index].cell(field_index, self.err)
+            row_cell_val = get_value_or_exception(self.err, parse_value(row_cell_val, data_type=data_type))
+            if self.err.has_error():
+                return
             if val == row_cell_val:
                 row_num_list.append(row_num)
 
-        return row_num_list
-
-    def find_first_row_num(self, field: str, val, must_have: bool = True, must_only_one: bool = True):
-        row_num_list = self.find_row_num_list(field, val)
         if self.err.has_error():
             return
 
-        if len(row_num_list) == 0:
-            if must_have:
-                msg = 'cannot find any row with value \'{}\' in field \'{}\''.format(val, field)
-                self.err.append(msg)
+        count = len(row_num_list)
+        if count == 0 and must_have:
+            msg = 'cannot find any row with value \'{}\' in field \'{}\''.format(val, field)
+            self.err.append(msg)
             return
 
-        if len(row_num_list) > 1:
-            if must_only_one:
-                msg = 'find too many rows \'{}\' with same value \'{}\' in field \'{}\''.format(row_num_list, val,
-                                                                                                field)
-                self.err.append(msg)
+        if count > 1 and must_only_one:
+            msg = 'find too many rows \'{}\' with same value \'{}\' in field \'{}\''.format(row_num_list, val, field)
+            self.err.append(msg)
+            return
+
+        return row_num_list
+
+    def find_first_row_num(self, field: str, val, data_type: str = "自动", must_have: bool = True,
+                           must_only_one: bool = True):
+        row_num_list = self.find_row_num_list(field, val, data_type=data_type, must_have=must_have,
+                                              must_only_one=must_only_one)
+        if self.err.has_error():
+            return
 
         return row_num_list[0]
 

@@ -35,7 +35,7 @@ def count_of_continue_none_cells(items: List[any] = None):
     return count
 
 
-def row_items(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='ZZ'):
+def row_items(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='IV'):
     if err.has_error():
         return None
     range_str = '{}{}:{}{}'.format(first_column, row, last_column, row)
@@ -46,7 +46,7 @@ def row_items(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='Z
     return cells[0:len(cells) - count]
 
 
-def row_items_with_column(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='ZZ'):
+def row_items_with_column(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='IV'):
     items = row_items(err, sht, row, first_column, last_column)
     results = []
     i = 0
@@ -57,7 +57,7 @@ def row_items_with_column(err: Error, sht: xw.Sheet, row=1, first_column='A', la
     return results
 
 
-def row_items_filtered(err: Error, sht: xw.Sheet, tester=lambda x: True, row=1, first_column='A', last_column='ZZ'):
+def row_items_filtered(err: Error, sht: xw.Sheet, tester=lambda x: True, row=1, first_column='A', last_column='IV'):
     items = row_items_with_column(err, sht, row, first_column, last_column)
     if tester is None:
         return items
@@ -186,7 +186,9 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
                           skip_if_no_source_sheet: bool = False,
                           empty_rows: int = 1,
                           source_ref_column: str = 'A',
-                          target_ref_column: str = 'A'):
+                          target_ref_column: str = 'A',
+                          source_start_row: int = 1,
+                          target_start_row: int = 1):
     if err.has_error():
         return
     source_sht = sheet_with_name(err, source_wb, source_sheet)
@@ -197,7 +199,7 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
             return
         return
 
-    source_row_count = len(column_items(err, source_sht, source_ref_column))
+    source_row_count = len(column_items(err, source_sht, source_ref_column, start_row=source_start_row))
     if err.has_error():
         return
 
@@ -207,14 +209,16 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
     target_sht = sheet_with_name(err, target_wb, target_sheet)
     if err.has_error():
         return
-    target_row_count = len(column_items(err, target_sht, target_ref_column))
+    target_row_count = len(column_items(err, target_sht, target_ref_column, start_row=target_start_row))
     if err.has_error():
         return
 
-    source_range = source_sht.range('A1:ZZ{}'.format(source_row_count))
+    source_range = source_sht.range('A{}:IV{}'.format(source_start_row, source_start_row + source_row_count - 1))
     split_row_count = 0 if target_row_count == 0 else empty_rows
-    target_range = target_sht.range('A{}:ZZ{}'.format(target_row_count + 1 + split_row_count,
-                                                      target_row_count + source_row_count + split_row_count))
+
+    _target_start_row = target_start_row - 1 + target_row_count + 1 + split_row_count
+    _target_end_row = target_start_row - 1 + target_row_count + source_row_count + split_row_count
+    target_range = target_sht.range('A{}:IV{}'.format(_target_start_row, _target_end_row))
     source_range.copy(target_range)
     return True
 

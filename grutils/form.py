@@ -3,8 +3,9 @@
 from typing import List
 
 from .error import Error
-from .utils import strip_if_str
+from .formatter_and_parser import strip_if_str
 from .iterable import first_match
+from .utils import smart_repair_title
 
 
 class Row:
@@ -97,6 +98,7 @@ class Form:
     def set_title_row(self, row_num=1, titles: List[any] = None, do_strip=True):
         if titles is None:
             titles = []
+        titles = list(map(lambda x: smart_repair_title(x), titles))
         r = self.title_row
         if r.is_inited():
             self.err.append('title row has already been included')

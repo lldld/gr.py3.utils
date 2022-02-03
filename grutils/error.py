@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 def build_warning(file: str, row: any, details: str):
@@ -50,3 +50,13 @@ class Error:
 
     def clear_warnings(self):
         self.warnings = []
+
+    def add_err_details(self, details: any, details_key: any = None):
+        if len(self.msgs) == 0:
+            return
+
+        if details_key is None:
+            self.msgs[-1] = '{} <{}>'.format(self.msgs[-1], details)
+        else:
+            self.msgs[-1] = '{} <{}: {}>'.format(self.msgs[-1], details_key, details)
+
