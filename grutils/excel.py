@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
-from typing import List
-
-from xlwings.utils import rgb_to_int
-
-from .error import Error
+from typing import List, Union, Callable
 import xlwings as xw
+from xlwings.utils import rgb_to_int
+from .error import Error
+from .form import Form
 
 
 def sheet_with_name(err: Error, wb: xw.Book, name='sheet name'):
@@ -297,3 +296,79 @@ def upload_data_to_another_file(err: Error,
 
     close_wb(source_wb)
     close_wb(target_wb)
+
+
+def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
+                          block_mark_tester: Union[str, Callable[[any], bool]],
+                          block_mark_col='A',
+                          block_title_row_ref_num=0,
+                          block_start_col='A',
+                          start_row=1
+                          ):
+    if err.has_error():
+        return
+
+    # find block mark rows
+    items = column_items_with_row(err, sht, column=block_mark_col, start_row=start_row)
+    if err.has_error():
+        return
+
+    def __tester(x):
+        match = block_mark_tester(x) if type(block_mark_tester) != str else '{}'.format(x) == block_mark_tester
+        return match
+
+    mark_column_cells = list(filter(lambda x: __tester(x[1]), items))
+    blocks_count = len(mark_column_cells)
+    if blocks_count == 0:
+        msg = 'cannot find any block marked in column \'{}\' with start row \'{}\''.format(block_mark_col, start_row)
+        err.append(msg)
+        return
+
+    # read block one by one
+    last_row_num = items[-1][0]
+    blocks: List[Form] = []
+    for i in range(blocks_count):
+        mark_cell = mark_column_cells[i]
+        block_mark_row_num, mark_value = mark_cell
+        block_title_row_num = block_mark_row_num + block_title_row_ref_num
+        form = Form(err)
+
+        # check block content rows count
+        block_end_row_num = last_row_num if i == blocks_count - 1 else mark_column_cells[i + 1][0] - 1
+        block_row_count = block_end_row_num - block_title_row_num + 1
+        if block_row_count < 2:
+            msg = 'block at row \'{}\' is empty or only contains title row' \
+                .format(block_mark_row_num)
+            err.append(msg)
+            return
+
+        # read block title
+        block_title_cells = row_items(err, sht, block_title_row_num, block_start_col)
+        if err.has_error():
+            return
+
+        if len(block_title_cells) == 0:
+            msg = 'title row of block at row \'{}\' is empty' \
+                .format(block_mark_row_num)
+            err.append(msg)
+            return
+
+        form.set_title_row(block_title_row_num, block_title_cells)
+
+        block_end_col = num_to_column(column_to_num(block_start_col) + len(block_title_cells) - 1)
+
+        # read block content
+        for j in range(block_row_count - 1):
+            row_num = block_title_row_num + 1 + j
+            phase_content_row_range_str = "{}{}:{}{}".format(block_start_col, row_num, block_end_col, row_num)
+            cells = sht.range(phase_content_row_range_str).value
+
+            form.append_data_row(row_num, cells)
+
+        # save form
+        if err.has_error():
+            return
+
+        blocks.append(form)
+
+    return None if err.has_error() else blocks
