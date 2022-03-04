@@ -12,6 +12,7 @@ from .formatter_and_parser import is_none_or_empty
 class ExcelFilesManager:
     def __init__(self, visible=True, add_book=False):
         self.excel_app = xw.App(visible=visible, add_book=add_book)
+        self.excel_app.display_alerts = False
         self.opened_excel_files: Dict[str, xw.Book] = {}
 
     def close_opened_excel_file(self, file_path: str, save_changes: bool = True):
@@ -44,7 +45,7 @@ class ExcelFilesManager:
             err.append("{} is opened, please close it and try again".format(file_path))
             return
 
-        wb = self.excel_app.books.open(file_path)
+        wb = self.excel_app.books.open(file_path, update_links=False)
         self.opened_excel_files[file_path] = wb
 
         return wb

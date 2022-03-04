@@ -372,3 +372,17 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
         blocks.append(form)
 
     return None if err.has_error() else blocks
+
+
+def build_row_range(row_num: int):
+    return 'A{}:IV{}'.format(row_num, row_num)
+
+
+def copy_excel_row(source_sht: xw.Sheet, source_row_num: int,
+                   target_sht: xw.Sheet, target_row_num: int,
+                   with_content: bool = False):
+    source_range = build_row_range(source_row_num)
+    target_range = build_row_range(target_row_num)
+    source_sht.range(source_range).copy(target_sht.range(target_range))
+    if not with_content:
+        target_sht.range(target_range).clear_contents()

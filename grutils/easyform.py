@@ -136,7 +136,7 @@ class EasyForm:
             row.cells[field_index] = formatter(val)
 
     def find_row_num_list(self, field: str, val, data_type: str = "自动", must_have: bool = False,
-                          must_only_one: bool = False):
+                          must_only_one: bool = False, in_rows: Optional[List[int]] = None):
         self.__verify_field(field)
         if self.err.has_error():
             return
@@ -144,6 +144,8 @@ class EasyForm:
         field_index = self.__field_to_index_dict[field]
         row_num_list: List[int] = []
         for row_num in self.___row_num_to_index_dict:
+            if in_rows is not None and row_num not in in_rows:
+                continue
             row_index = self.___row_num_to_index_dict[row_num]
             row_cell_val = self.__raw_form.data_rows[row_index].cell(field_index, self.err)
             row_cell_val = get_value_or_exception(self.err, parse_value(row_cell_val, data_type=data_type))
@@ -156,22 +158,25 @@ class EasyForm:
             return
 
         count = len(row_num_list)
+        in_rows_desc = "" if in_rows is None else " , in rows: \'{}\'".format(",".join(in_rows))
         if count == 0 and must_have:
-            msg = 'cannot find any row with value \'{}\' in field \'{}\''.format(val, field)
+            msg = 'cannot find any row with value \'{}\' in field \'{}\'{}'.format(val, field, in_rows_desc)
             self.err.append(msg)
             return
 
         if count > 1 and must_only_one:
-            msg = 'find too many rows \'{}\' with same value \'{}\' in field \'{}\''.format(row_num_list, val, field)
+            msg = 'find too many rows \'{}\' with same value \'{}\' in field \'{}\'{}'\
+                .format(row_num_list, val, field, in_rows_desc)
             self.err.append(msg)
             return
 
         return row_num_list
 
     def find_first_row_num(self, field: str, val, data_type: str = "自动", must_have: bool = True,
-                           must_only_one: bool = True):
+                           must_only_one: bool = True, in_rows: Optional[List[int]] = None):
         row_num_list = self.find_row_num_list(field, val, data_type=data_type, must_have=must_have,
-                                              must_only_one=must_only_one)
+                                              must_only_one=must_only_one,
+                                              in_rows=in_rows)
         if self.err.has_error():
             return
 
