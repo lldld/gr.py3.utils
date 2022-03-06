@@ -45,6 +45,87 @@ def row_items(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='I
     return cells[0:len(cells) - count]
 
 
+def merge_area_value(err: Error, sht: xw.Sheet, merge_area: xw.Range):
+    if err.has_error():
+        return
+
+    first_cell_str = "{}{}".format(num_to_column(merge_area.column), merge_area.row)
+    return sht.range(first_cell_str).value
+
+
+def rows_items(err: Error, sht: xw.Sheet, start_row=1, end_row=2, first_column='A', last_column='IV',
+               fill_merged_cells_at_right: bool = True, fill_merged_cells_at_bottom: bool = False):
+    if err.has_error():
+        return
+
+    if start_row > end_row or start_row < 1:
+        err.append("invalid parameter start_row \'{}\' and end_row \'{}\'".format(start_row, end_row))
+        return
+
+    # get rows cells
+    range_str = '{}{}:{}{}'.format(first_column, start_row, last_column, end_row)
+    r = sht.range(range_str)
+    rows: List[List] = r.value if start_row != end_row else [r.value]
+
+    # get merged areas
+    merge_areas: List = []
+    start_column_num = column_to_num(first_column)
+    max_column_num = start_column_num
+    for row_num, row_cells in enumerate(rows, start_row):
+        for column_num, cell in enumerate(row_cells, start_column_num):
+            if cell is not None:
+                cell_range = sht.range('{}{}'.format(num_to_column(column_num), row_num))
+                cell_merge_area = cell_range.merge_area
+                last_cell_merge_area = cell_merge_area.last_cell
+
+                if last_cell_merge_area.column > max_column_num:
+                    max_column_num = last_cell_merge_area.column
+                if cell_range == cell_merge_area:
+                    continue
+
+                merge_area = {
+                    "value": cell,
+                    "start_row_num": row_num,
+                    "start_column_num": column_num,
+                    "end_row_num": last_cell_merge_area.row,
+                    "end_column_num": last_cell_merge_area.column,
+                    "start_row_index": row_num - start_row,
+                    "start_column_index": column_num - start_column_num,
+                    "end_row_index": last_cell_merge_area.row - start_row,
+                    "end_column_index": last_cell_merge_area.column - start_column_num
+                }
+                merge_areas.append(merge_area)
+
+    # fill merged cells
+    if fill_merged_cells_at_right or fill_merged_cells_at_bottom:
+        for merge_area in merge_areas:
+            value = merge_area["value"]
+            start_row_index = merge_area["start_row_index"]
+            start_column_index = merge_area["start_column_index"]
+            end_row_index = merge_area["end_row_index"]
+            end_column_index = merge_area["end_column_index"]
+            if fill_merged_cells_at_right and not fill_merged_cells_at_bottom:
+                for column_index in range(start_column_index, end_column_index + 1):
+                    if column_index < len(rows[start_row_index]):
+                        rows[start_row_index][column_index] = value
+            elif not fill_merged_cells_at_right and fill_merged_cells_at_bottom:
+                for row_index in range(start_row_index, end_row_index + 1):
+                    if row_index < len(rows):
+                        rows[row_index][start_column_index] = value
+            else:
+                for row_index in range(start_row_index, end_row_index + 1):
+                    if row_index < len(rows):
+                        for column_index in range(start_column_index, end_column_index + 1):
+                            if column_index < len(rows[row_index]):
+                                rows[row_index][column_index] = value
+
+    # remove useless cells in row
+    column_count = max_column_num - start_column_num + 1
+    rows = list(map(lambda row: row[0:column_count], rows))
+
+    return rows
+
+
 def row_items_with_column(err: Error, sht: xw.Sheet, row=1, first_column='A', last_column='IV'):
     items = row_items(err, sht, row, first_column, last_column)
     results = []
