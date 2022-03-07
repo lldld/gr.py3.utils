@@ -15,7 +15,7 @@ class EasyForm:
         self.err = err
         self.__raw_form = form
         self.__all_fields: List[str] = list(map(lambda x: string_of(x), self.__raw_form.title_row.cells))
-        self.___row_num_to_index_dict: Optional[Dict[int, int]] = self.__init_row_num_to_index_dict()
+        self.__row_num_to_index_dict: Optional[Dict[int, int]] = self.__init_row_num_to_index_dict()
         self.__field_to_index_dict: Dict[str, int] = {}
 
         self.row_num_list: List[int] = list(map(lambda x: x.row_num, self.__raw_form.data_rows))
@@ -81,7 +81,7 @@ class EasyForm:
         if self.err.has_error():
             return
 
-        if row_num not in self.___row_num_to_index_dict:
+        if row_num not in self.__row_num_to_index_dict:
             msg = 'row "{}" is out of range'.format(row_num)
             self.err.append(msg)
 
@@ -92,7 +92,7 @@ class EasyForm:
             return
 
         field_index = self.__field_to_index_dict[field]
-        row_index = self.___row_num_to_index_dict[row_num]
+        row_index = self.__row_num_to_index_dict[row_num]
 
         return self.__raw_form.data_rows[row_index].cell(field_index, self.err)
 
@@ -115,8 +115,8 @@ class EasyForm:
             return
 
         field_index = self.__field_to_index_dict[field]
-        for row_num in self.___row_num_to_index_dict:
-            row_index = self.___row_num_to_index_dict[row_num]
+        for row_num in self.__row_num_to_index_dict:
+            row_index = self.__row_num_to_index_dict[row_num]
             row_cell_value = self.__raw_form.data_rows[row_index].cell(field_index, self.err)
 
             if row_cell_value != expected_value:
@@ -143,10 +143,10 @@ class EasyForm:
 
         field_index = self.__field_to_index_dict[field]
         row_num_list: List[int] = []
-        for row_num in self.___row_num_to_index_dict:
+        for row_num in self.__row_num_to_index_dict:
             if in_rows is not None and row_num not in in_rows:
                 continue
-            row_index = self.___row_num_to_index_dict[row_num]
+            row_index = self.__row_num_to_index_dict[row_num]
             row_cell_val = self.__raw_form.data_rows[row_index].cell(field_index, self.err)
             row_cell_val = get_value_or_exception(self.err, parse_value(row_cell_val, data_type=data_type))
             if self.err.has_error():
@@ -158,7 +158,7 @@ class EasyForm:
             return
 
         count = len(row_num_list)
-        in_rows_desc = "" if in_rows is None else " , in rows: \'{}\'".format(",".join(in_rows))
+        in_rows_desc = "" if in_rows is None else " , in rows: \'{}\'".format(in_rows)
         if count == 0 and must_have:
             msg = 'cannot find any row with value \'{}\' in field \'{}\'{}'.format(val, field, in_rows_desc)
             self.err.append(msg)

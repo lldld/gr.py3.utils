@@ -43,7 +43,8 @@ def create_general_path_picker(frame: tkinter.Frame,
 
     content = tkinter.StringVar(value=old_path)
 
-    message = ttk.Entry(frame, width=label_width, text=content, style='TLabel', justify='right', state='readonly')
+    message = ttk.Entry(frame, width=label_width, textvariable=content, style='TLabel', justify='right',
+                        state='readonly')
     message.grid(padx=pad, pady=pad, row=row, column=1, columnspan=3, sticky=E + W)
 
     def on_btn_click():
