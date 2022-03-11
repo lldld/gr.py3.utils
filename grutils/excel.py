@@ -164,7 +164,7 @@ def column_items(err: Error, sht: xw.Sheet, column='A', start_row=1, steps=100):
     items = []
     start_row_sub = start_row
     count = count_of_continue_none_cells(items)
-    while count < 20:
+    while count < steps:
         items = items + column_items_sub(err, sht, column, start_row_sub, steps)
         start_row_sub += steps
         count = count_of_continue_none_cells(items)
