@@ -268,7 +268,8 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
                           source_ref_column: str = 'A',
                           target_ref_column: str = 'A',
                           source_start_row: int = 1,
-                          target_start_row: int = 1):
+                          target_start_row: int = 1,
+                          steps=100):
     if err.has_error():
         return
     source_sht = sheet_with_name(err, source_wb, source_sheet)
@@ -279,7 +280,7 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
             return
         return
 
-    source_row_count = len(column_items(err, source_sht, source_ref_column, start_row=source_start_row))
+    source_row_count = len(column_items(err, source_sht, source_ref_column, start_row=source_start_row, steps=steps))
     if err.has_error():
         return
 
@@ -289,7 +290,7 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
     target_sht = sheet_with_name(err, target_wb, target_sheet)
     if err.has_error():
         return
-    target_row_count = len(column_items(err, target_sht, target_ref_column, start_row=target_start_row))
+    target_row_count = len(column_items(err, target_sht, target_ref_column, start_row=target_start_row, steps=steps))
     if err.has_error():
         return
 
@@ -384,13 +385,14 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
                           block_mark_col='A',
                           block_title_row_ref_num=0,
                           block_start_col='A',
-                          start_row=1
+                          start_row=1,
+                          steps=100
                           ):
     if err.has_error():
         return
 
     # find block mark rows
-    items = column_items_with_row(err, sht, column=block_mark_col, start_row=start_row)
+    items = column_items_with_row(err, sht, column=block_mark_col, start_row=start_row, steps=steps)
     if err.has_error():
         return
 
