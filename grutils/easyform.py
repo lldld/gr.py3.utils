@@ -23,6 +23,9 @@ class EasyForm:
             msg = 'form is no data'
             self.err.append(msg)
 
+    def form(self):
+        return self.__raw_form
+
     def __init_row_num_to_index_dict(self):
         if self.err.has_error():
             return
