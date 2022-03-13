@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
-from typing import List, Union, Callable
+from typing import List, Union, Callable, Optional
 import xlwings as xw
 from xlwings.utils import rgb_to_int
 from .error import Error
@@ -469,3 +469,40 @@ def copy_excel_row(source_sht: xw.Sheet, source_row_num: int,
     source_sht.range(source_range).copy(target_sht.range(target_range))
     if not with_content:
         target_sht.range(target_range).clear_contents()
+
+
+def read_sht_bottom_row(err: Error, sht: xw.Sheet,
+                        ref_cols: Optional[List[str]] = None,
+                        steps=100):
+    if err.has_error():
+        return
+
+    if ref_cols is None:
+        ref_cols = ['A', 'B', 'C', 'D']
+
+    max_row_num = 1
+    for col in ref_cols:
+        column_cells = column_items(err, sht, col, steps=steps)
+        if err.has_error():
+            return
+        max_row_num = max(len(column_cells), max_row_num)
+
+    return max_row_num
+
+
+def read_sht_rightest_col(err: Error, sht: xw.Sheet,
+                          ref_rows: Optional[List[int]] = None):
+    if err.has_error():
+        return
+
+    if ref_rows is None:
+        ref_rows = [1, 2, 3]
+
+    max_col_num = 1
+    for row in ref_rows:
+        row_cells = row_items(err, sht, row)
+        if err.has_error():
+            return
+        max_col_num = max(len(row_cells), max_col_num)
+
+    return max_col_num
