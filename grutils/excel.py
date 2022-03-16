@@ -334,7 +334,7 @@ def upload_data_to_another_file(err: Error,
     if not os.path.exists(target_file_path):
         try:
             shutil.copy(source_file_path, target_file_path)
-            target_wb: xw.Book = app.books.open(target_file_path)
+            target_wb: xw.Book = app.books.open(target_file_path, update_links=False)
 
             # rename sheet if should
             if source_sheet != target_sheet:
@@ -362,8 +362,8 @@ def upload_data_to_another_file(err: Error,
         return
 
     # uploading
-    source_wb = app.books.open(source_file_path)
-    target_wb = app.books.open(target_file_path)
+    source_wb = app.books.open(source_file_path, update_links=False)
+    target_wb = app.books.open(target_file_path, update_links=False)
 
     uploaded = append_sht_to_another(err, source_wb, target_wb,
                                      source_sheet,
