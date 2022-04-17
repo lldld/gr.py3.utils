@@ -15,7 +15,7 @@ class Configuration:
         props = {}
         if not os.path.exists(self.file):
             return props
-        with open(self.file, "rt") as f:
+        with open(self.file, "rt", encoding="utf-8") as f:
             for line in f:
                 key_value = line.split('=')
                 key = key_value[0].strip()
@@ -27,7 +27,7 @@ class Configuration:
     def save(self, props=None):
         if props is None:
             props = {}
-        with open(self.file, 'w+') as out:
+        with open(self.file, 'w+', encoding='utf-8') as out:
             for key in props.keys():
                 value = props[key]
                 out.write(key + '=' + value + '\n')
