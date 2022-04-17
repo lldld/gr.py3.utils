@@ -65,7 +65,8 @@ def read_sht(err: Error, sht: xw.Sheet, ref_col: str = 'A', header_row: Union[in
              fill_merged_cells_at_right: bool = True,
              fill_merged_cells_at_bottom: bool = False,
              header_joiner: str = "",
-             steps=100):
+             steps=100,
+             do_smart_repair_title=True):
     if err.has_error():
         return
 
@@ -85,7 +86,8 @@ def read_sht(err: Error, sht: xw.Sheet, ref_col: str = 'A', header_row: Union[in
     # add titles to form
     end_col = num_to_column(column_to_num(start_col) + len(headers) - 1)
     form = Form(err)
-    form.set_title_row(header_start_row, headers)
+    form.set_title_row(header_start_row, headers,
+                       do_smart_repair_title=do_smart_repair_title)
 
     # add data rows to form
     cells_col = column_items(err, sht, ref_col, header_end_row + 1, steps=steps)

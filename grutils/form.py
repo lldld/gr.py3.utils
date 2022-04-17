@@ -95,10 +95,11 @@ class Form:
 
         return mapping
 
-    def set_title_row(self, row_num=1, titles: List[any] = None, do_strip=True):
+    def set_title_row(self, row_num=1, titles: List[any] = None, do_strip=True, do_smart_repair_title=True):
         if titles is None:
             titles = []
-        titles = list(map(lambda x: smart_repair_title(x), titles))
+        if do_smart_repair_title:
+            titles = list(map(lambda x: smart_repair_title(x), titles))
         r = self.title_row
         if r.is_inited():
             self.err.append('title row has already been included')

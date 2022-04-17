@@ -386,7 +386,8 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
                           block_title_row_ref_num=0,
                           block_start_col='A',
                           start_row=1,
-                          steps=100
+                          steps=100,
+                          do_smart_repair_title=True
                           ):
     if err.has_error():
         return
@@ -436,7 +437,8 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
             err.append(msg)
             return
 
-        form.set_title_row(block_title_row_num, block_title_cells)
+        form.set_title_row(block_title_row_num, block_title_cells,
+                           do_smart_repair_title=do_smart_repair_title)
 
         block_end_col = num_to_column(column_to_num(block_start_col) + len(block_title_cells) - 1)
 

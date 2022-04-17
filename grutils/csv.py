@@ -14,7 +14,7 @@ def check_charset(file_path):
     return charset
 
 
-def load_form_from_csv_file(err: Error, file_path='', do_strip=True):
+def load_form_from_csv_file(err: Error, file_path='', do_strip=True, do_smart_repair_title=True):
     if err.has_error():
         return None
 
@@ -36,7 +36,8 @@ def load_form_from_csv_file(err: Error, file_path='', do_strip=True):
                 if data.title_row.is_inited():
                     data.append_data_row(line_no, cells, do_strip)
                 else:
-                    data.set_title_row(line_no, cells, do_strip)
+                    data.set_title_row(line_no, cells, do_strip,
+                                       do_smart_repair_title=do_smart_repair_title)
 
             line_no += 1
 
