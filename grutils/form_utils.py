@@ -33,12 +33,13 @@ def read_sht_headers(err: Error, sht: xw.Sheet, header_start_row=1, header_end_r
                      start_col: str = 'A',
                      fill_merged_cells_at_right: bool = True,
                      fill_merged_cells_at_bottom: bool = False,
-                     header_joiner: str = ""):
+                     header_joiner: str = "", end_col='IV'):
     if err.has_error():
         return
 
     # get title rows
     rows = rows_items(err, sht, header_start_row, header_end_row, start_col,
+                      last_column=end_col,
                       fill_merged_cells_at_right=fill_merged_cells_at_right,
                       fill_merged_cells_at_bottom=fill_merged_cells_at_bottom)
     if err.has_error():
@@ -66,7 +67,7 @@ def read_sht(err: Error, sht: xw.Sheet, ref_col: str = 'A', header_row: Union[in
              fill_merged_cells_at_bottom: bool = False,
              header_joiner: str = "",
              steps=100,
-             do_smart_repair_title=True):
+             do_smart_repair_title=True, end_col='IV'):
     if err.has_error():
         return
 
@@ -78,7 +79,7 @@ def read_sht(err: Error, sht: xw.Sheet, ref_col: str = 'A', header_row: Union[in
                                start_col,
                                fill_merged_cells_at_right,
                                fill_merged_cells_at_bottom,
-                               header_joiner)
+                               header_joiner, end_col=end_col)
 
     if err.has_error():
         return

@@ -269,7 +269,7 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
                           target_ref_column: str = 'A',
                           source_start_row: int = 1,
                           target_start_row: int = 1,
-                          steps=100):
+                          steps=100, end_col='IV'):
     if err.has_error():
         return
     source_sht = sheet_with_name(err, source_wb, source_sheet)
@@ -294,12 +294,13 @@ def append_sht_to_another(err: Error, source_wb: xw.Book, target_wb: xw.Book,
     if err.has_error():
         return
 
-    source_range = source_sht.range('A{}:IV{}'.format(source_start_row, source_start_row + source_row_count - 1))
+    source_range = source_sht.range('A{}:{}{}'.format(source_start_row, end_col,
+                                                      source_start_row + source_row_count - 1))
     split_row_count = 0 if target_row_count == 0 else empty_rows
 
     _target_start_row = target_start_row - 1 + target_row_count + 1 + split_row_count
     _target_end_row = target_start_row - 1 + target_row_count + source_row_count + split_row_count
-    target_range = target_sht.range('A{}:IV{}'.format(_target_start_row, _target_end_row))
+    target_range = target_sht.range('A{}:{}{}'.format(_target_start_row, end_col, _target_end_row))
     source_range.copy(target_range)
     return True
 
@@ -387,7 +388,8 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
                           block_start_col='A',
                           start_row=1,
                           steps=100,
-                          do_smart_repair_title=True
+                          do_smart_repair_title=True,
+                          block_end_col='IV',
                           ):
     if err.has_error():
         return
@@ -427,7 +429,7 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
             return
 
         # read block title
-        block_title_cells = row_items(err, sht, block_title_row_num, block_start_col)
+        block_title_cells = row_items(err, sht, block_title_row_num, block_start_col, last_column=block_end_col)
         if err.has_error():
             return
 
@@ -459,15 +461,15 @@ def get_blocks_from_sheet(err: Error, sht: xw.Sheet,
     return None if err.has_error() else blocks
 
 
-def build_row_range(row_num: int):
-    return 'A{}:IV{}'.format(row_num, row_num)
+def build_row_range(row_num: int, end_col='IV'):
+    return 'A{}:{}{}'.format(row_num, end_col, row_num)
 
 
 def copy_excel_row(source_sht: xw.Sheet, source_row_num: int,
                    target_sht: xw.Sheet, target_row_num: int,
-                   with_content: bool = False):
-    source_range = build_row_range(source_row_num)
-    target_range = build_row_range(target_row_num)
+                   with_content: bool = False, end_col='IV'):
+    source_range = build_row_range(source_row_num, end_col)
+    target_range = build_row_range(target_row_num, end_col)
     source_sht.range(source_range).copy(target_sht.range(target_range))
     if not with_content:
         target_sht.range(target_range).clear_contents()
@@ -493,7 +495,7 @@ def read_sht_bottom_row(err: Error, sht: xw.Sheet,
 
 
 def read_sht_rightest_col(err: Error, sht: xw.Sheet,
-                          ref_rows: Optional[List[int]] = None):
+                          ref_rows: Optional[List[int]] = None, last_column='IV'):
     if err.has_error():
         return
 
@@ -502,7 +504,7 @@ def read_sht_rightest_col(err: Error, sht: xw.Sheet,
 
     max_col_num = 1
     for row in ref_rows:
-        row_cells = row_items(err, sht, row)
+        row_cells = row_items(err, sht, row, last_column=last_column)
         if err.has_error():
             return
         max_col_num = max(len(row_cells), max_col_num)
