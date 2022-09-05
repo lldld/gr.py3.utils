@@ -11,9 +11,9 @@ class Configuration:
         self.props = self.load()
 
     def load(self):
-        app_root_folder = os.path.dirname(__file__).replace("\\", "/")
         props = {}
         if not os.path.exists(self.file):
+            print('[Warning] config file\'{}\' is not exists'.format(self.file))
             return props
         with open(self.file, "rt", encoding="utf-8") as f:
             for line in f:
@@ -21,8 +21,14 @@ class Configuration:
                 key = key_value[0].strip()
                 if key != '':
                     value = '='.join(key_value[1:]).strip()
-                    props[key] = value.replace("${APP_ROOT_FOLDER}", app_root_folder)
+                    props[key] = value
         return props
+
+    def replace_macro_in_value(self, macro: str, replacer: str):
+        for k in self.props:
+            v = self.props[k]
+            if macro in v:
+                self.props[k] = v.replace(macro, replacer)
 
     def save(self, props=None):
         if props is None:

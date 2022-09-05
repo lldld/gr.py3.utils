@@ -27,7 +27,6 @@
 #     print(v)
 
 
-
 # from grutils.progress import shared_progress
 # from grutils.form_utils import read_sht
 #
@@ -76,3 +75,35 @@
 # print('\n\n  ============== ')
 # shared_progress.reset()
 # shared_progress.dump_steps()
+# import os.path
+# import pprint
+# import xlwings as xw
+#
+# from grutils.error import Error, build_warning_v2
+# from grutils.excel import quit_app
+# from grutils.utils import Configuration
+# from grutils.warnings_writer import create_warnings_file, write_warnings
+
+# c = Configuration(os.path.dirname(__file__), "test")
+# pprint.pprint(c.props)
+#
+# c.replace_macro_in_value("${APP_ROOT_FOLDER}", "???")
+# pprint.pprint(c.props)
+
+# folder_fp = os.path.dirname(__file__)
+# tpl_fp = os.path.join(folder_fp, "warnings_template.xlsx")
+# fp = create_warnings_file(os.path.abspath(tpl_fp),
+#                           os.path.abspath(folder_fp),
+#                           "test")
+# a = xw.App(visible=False, add_book=False)
+# try:
+#     e = Error()
+#     w = build_warning_v2("file", "sheet1", 10, "has warnings")
+#     e.append_warning(w)
+#     write_warnings(e, fp, a)
+#
+#     if e.has_error():
+#         print(e.msg())
+#
+# finally:
+#     quit_app(a)
