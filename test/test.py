@@ -89,21 +89,3 @@
 #
 # c.replace_macro_in_value("${APP_ROOT_FOLDER}", "???")
 # pprint.pprint(c.props)
-
-# folder_fp = os.path.dirname(__file__)
-# tpl_fp = os.path.join(folder_fp, "warnings_template.xlsx")
-# fp = create_warnings_file(os.path.abspath(tpl_fp),
-#                           os.path.abspath(folder_fp),
-#                           "test")
-# a = xw.App(visible=False, add_book=False)
-# try:
-#     e = Error()
-#     w = build_warning_v2("file", "sheet1", 10, "has warnings")
-#     e.append_warning(w)
-#     write_warnings(e, fp, a)
-#
-#     if e.has_error():
-#         print(e.msg())
-#
-# finally:
-#     quit_app(a)
