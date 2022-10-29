@@ -37,7 +37,8 @@ def create_general_path_picker(frame: tkinter.Frame,
                                on_changed: Optional[any] = None,
                                btn_width=30,
                                label_width=90,
-                               pad=5
+                               pad=5,
+                               clear_when_cancel=False
                                ):
     old_path = '' if old_path is None else old_path
 
@@ -49,6 +50,8 @@ def create_general_path_picker(frame: tkinter.Frame,
 
     def on_btn_click():
         new_path = __ask_path(btn_title, old_path, filetypes)
+        if new_path is None and clear_when_cancel:
+            new_path = ""
         if new_path is not None:
             content.set(new_path)
             if on_changed is not None:
