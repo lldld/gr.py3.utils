@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from .csv import load_form_from_csv_file
 from .excel import num_to_column, column_to_num
 from .formatter_and_parser import is_none_or_empty, string_of, parse_value
@@ -98,6 +98,17 @@ class EasyForm:
         row_index = self.__row_num_to_index_dict[row_num]
 
         return self.__raw_form.data_rows[row_index].cell(field_index, self.err)
+
+    def update_cell(self, field: str, row_num: int, new_val: Any):
+        self.__verify_field(field)
+        self.__verify_row_num(row_num)
+        if self.err.has_error():
+            return
+
+        field_index = self.__field_to_index_dict[field]
+        row_index = self.__row_num_to_index_dict[row_num]
+
+        return self.__raw_form.data_rows[row_index].update_cell(field_index, new_val, self.err)
 
     def excel_cell_range(self, field: str, row_num: int, start_column_name: str = 'A'):
         self.__verify_field(field)

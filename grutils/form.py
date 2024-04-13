@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import List, Any
 
 from .error import Error
 from .formatter_and_parser import strip_if_str
@@ -45,6 +45,15 @@ class Row:
             return None
 
         return self.cells[column_index]
+
+    def update_cell(self, column_index: int, new_val: Any, err: Error):
+        if err.has_error():
+            return
+        self.cell(column_index, err)
+        if err.has_error():
+            return
+
+        self.cells[column_index] = new_val
 
     def has_content(self):
         if not self.is_inited():
