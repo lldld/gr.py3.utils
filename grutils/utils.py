@@ -46,6 +46,11 @@ def get_simple_desc_of_int_groups(groups: List[Tuple[int, int]],
     return joiner.join(items)
 
 
+def get_id_desc(wafer_ids: List[int]):
+    grouped_wafer_id = sort_and_merge_ints(wafer_ids)
+    return get_simple_desc_of_int_groups(grouped_wafer_id, formatter='{:02}', linker="-", joiner=",")
+
+
 def compare_two_list(a: Optional[List], b: Optional[List]):
     if a is None and b is None:
         return True
